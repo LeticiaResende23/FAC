@@ -1,0 +1,57 @@
+.data
+    	numl: .asciiz "\n"
+	nvalida: .asciiz "Entrada invalida."
+
+.text 
+    main:
+        li $v0, 5	
+        syscall
+        move $s0, $v0
+	
+	li $v0, 5	
+        syscall
+        move $s4, $v0
+        
+        add $t0, $zero, 2
+        
+        ble $s0, 1, invalida
+        ble $s4, 1, invalida
+        mul $t4, $s0, $s4
+		
+	mdc:
+        	beq $s4, 0, resultado
+        	div $t3, $s0, $s4
+        	mfhi $t3
+        	move $s0, $s4
+        	move $s4, $t3
+        	j mdc
+        	
+        resultado:
+        	div $t4, $t4, $s0
+        	
+        	li $v0, 1
+		la $a0, ($s0)
+		syscall
+		
+        	li $v0, 4
+		la $a0, numl
+		syscall
+		
+		li $v0, 1
+		la $a0, ($t4)
+		syscall
+		j exit
+		
+	invalida:
+		li $v0, 4
+		la $a0, nvalida
+		syscall
+		j exit	
+		
+	exit:
+		li $v0, 4
+		la $a0, numl
+		syscall
+		
+		li $v0, 10 # fim do programa	
+       	       syscall

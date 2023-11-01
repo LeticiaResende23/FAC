@@ -1,0 +1,58 @@
+.data
+    entrada: .asciiz "Entrada invalida."
+    imprimirNao: .asciiz "nao"
+    imprimirSim: .asciiz "sim"
+
+.text
+main:
+    li $v0, 5 
+    syscall 
+    move $s0, $v0 
+
+    addi $s1, $zero, 1
+    blt $s0, $s1, invalido
+
+    addi $t0, $zero, 1
+    beq $s0, $t0, pnao
+    slti $t0, $s0, 4
+    bne $t0, $zero, psim
+
+    mtc1 $s0, $f1 
+	cvt.s.w $f1, $f1 
+	sqrt.s $f0, $f1 
+	cvt.w.s $f0, $f0 
+	mfc1 $s2, $f0 
+    addi $t4, $zero, 2 
+
+divisoes:
+
+    bgt $t4, $s2, psim 
+    div $s0, $t4 
+    mfhi $t3 
+    beq $t3, $zero, pnao 
+    addi $t4, $t4, 1 
+    j divisoes
+
+invalido:
+
+    li $v0, 4 
+    la $a0, entrada 
+    syscall 
+    j exit
+
+pnao:
+    li $v0, 4 
+    la $a0, imprimirNao 
+    syscall 
+    j exit
+
+psim:
+    li $v0, 4 
+    la $a0, imprimirSim 
+    syscall 
+    j exit
+
+exit:
+    li $v0, 10
+    syscall
+

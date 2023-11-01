@@ -1,0 +1,118 @@
+.data
+
+numero1: .float 32.0
+numero2: .float 273.15
+numero3: .float 1.8
+numero5: .float 459.67
+pulaLinha: .asciiz "\n"
+
+.text
+  main:
+   lwc1 $f1, numero1 #32
+   lwc1 $f2, numero2 #273.15
+   lwc1 $f3, numero3 #1.8
+   lwc1 $f5, numero5 #459.67
+
+li $v0, 12
+syscall
+move $t0, $v0 
+
+li $v0, 12 # lendo e armazenando a escala que eu pedi
+syscall
+
+li $v0, 12
+syscall
+move $t1, $v0
+
+li $v0, 12
+syscall
+
+li $v0, 6 # lendo e armazenando em f20
+syscall
+mov.s $f20, $f0
+
+beq $t1, 67 , celsius
+beq $t1, 70, fahrenheit
+beq $t1, 75, kelvin
+
+celsius:
+ 
+ beq $t0, 70, far # se a escala for farenheit
+ beq $t0, 75, kev
+ 
+ far:
+
+ sub.s $f20, $f20, $f1  # f20 - 32
+ div.s $f20, $f20, $f3  #f20 / 1.8
+
+ li $v0, 2
+ mov.s $f12, $f20
+ syscall
+ 
+ j exit
+        
+ kev:
+
+ sub.s $f20, $f20, $f2 #f20 - 273.15
+
+ li $v0, 2 # se a escola for kevin
+ mov.s $f12, $f20
+ syscall
+ 
+j exit
+
+fahrenheit:
+        
+ beq $t0, 75, ke #se a escala for kevin
+ beq $t0, 67, cel  #se a escala for celsius
+ 
+ ke:
+
+ mul.s $f20, $f20, $f3# f20 * 1.8
+sub.s $f20, $f20, $f5 #f20 - 459.67
+
+ li $v0, 2
+ mov.s $f12, $f20
+ syscall
+ 
+ j exit
+ 
+ cel:
+ 
+  mul.s $f20, $f20, $f3 # f20*1.8
+  add.s $f20, $f20, $f1  #f20+32
+
+ li $v0, 2
+ mov.s $f12, $f20
+ syscall
+ 
+ j exit
+ 
+
+kelvin:
+        
+ beq $t0, 70,fa   #se a escala for farenheit
+ beq $t0, 67, ce #se a sescala for celsius
+ 
+ fa:
+ add.s $f20,$f20,$f5  #f20 + 459.67
+ div.s $f20,$f20,$f3 # f20/1.8
+
+ li $v0, 2
+ mov.s $f12, $f20
+ syscall
+ 
+ j exit
+ 
+ ce: 
+ 
+ add.s $f20, $f20, $f2  #f20 + 273.15
+
+ li $v0, 2
+ mov.s $f12, $f20
+ syscall
+ 
+ j exit
+ exit:
+li $v0, 10 # encerrando o programa
+syscall

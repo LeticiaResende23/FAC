@@ -1,0 +1,124 @@
+.data
+	quantlinhas: .asciiz "\n"
+	input_string: 	.space 34
+	string_decimal: .space 256
+			.align 2 
+	string_potencia85:	.space 256
+			.align 2 
+	input_invalido: 	.asciiz "Entrada invalida.\n"
+	ASCII85:	.byte    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '.', '-', ':', '+', '=', '^', '!', '/', '*', '?', '&', '<', '>', '(', ')', '[', ']', '{', '}', '@', '%', '$', '#'
+.text
+
+main:		
+	
+	li $v0, 8		
+	la $a0, input_string
+	la $a1, 34
+	syscall
+
+	jal calculo_string_size
+		
+	jal string_decimal_potencia85
+	
+	jal print_resultado
+	
+	li $v0, 4		
+	la $a0, quantlinhas
+	syscall
+
+	j end
+
+end:
+	li $v0, 10
+	syscall
+		
+print_input_invalido:
+
+	li $v0, 4
+	la $a0, input_invalido
+	syscall
+	
+	j end
+	
+print_resultado:
+# Printa os caracteres de acordo com a tabela ascii85
+
+	addi $t6, $t6, -4
+	la $t1, ($t7)
+	mul $t1, $t1, 4
+	addi $t2, $t7, -1
+	add $t3, $t1, $t2 
+
+	loop_print_resultado:
+	
+	bltz $t3, end_print_resultado
+	lw $t4, string_potencia85($t6)
+	lb $a0, ASCII85($t4)
+	li $v0, 11
+	syscall
+	addi $t3, $t3, -1 
+	addi $t6, $t6, -4 
+	j loop_print_resultado
+	end_print_resultado: jr $ra
+		
+calculo_string_size:					
+# Calcula o tamanho da string de entrada
+
+	lb $t0, quantlinhas
+	li $t1, 0
+	li $t2, 0	
+	li $t5, 0
+	loop_calculo:
+	
+	lb  $t3, input_string($t2)		
+	bne $t3, $t0, continua_loop_calculo	
+	j else	
+	bnez 	$t3, continua_loop_calculo
+		
+	else:			
+	rem $t2, $t1, 4	
+	beqz $t2, end_calculo	
+	j print_input_invalido
+	continua_loop_calculo: 
+	
+	sll $t4, $t4, 8 			
+	or $t4, $t4, $t3 			
+	addi $t1, $t1, 1
+	addi $t2, $t2, 1			
+	rem $t6, $t2, 4			
+	bnez $t6, loop_calculo
+	sw $t4, string_decimal($t5)		
+	addi $t5, $t5, 4 			
+	addi $t7, $t7, 1 
+				
+	j loop_calculo		
+	end_calculo: jr $ra
+		
+	string_decimal_potencia85:
+	la $t0, ($t7)				
+	addi $t0, $t0, -1
+	mul $t1, $t0, 4 
+				
+	loop_decimal:
+	bltz $t0, end_string_para_decimal_potencia85 
+	lw $t2, string_decimal($t1)
+	la $t3, ($t2) 
+	li $t4, 0 
+						
+	loop_potencia85:
+	beq $t4, 5, continua_para_decimal
+	rem $t5, $t3, 85			
+	div $t3, $t3, 85
+			
+	sw $t5, string_potencia85($t6)	
+	addi $t4, $t4, 1
+	addi $t6, $t6, 4 
+	j loop_potencia85
+	
+	continua_para_decimal: 
+	addi $t0, $t0, -1 
+	addi $t1, $t1, -4
+	j loop_decimal
+	
+	end_string_para_decimal_potencia85: 
+	jr $ra
